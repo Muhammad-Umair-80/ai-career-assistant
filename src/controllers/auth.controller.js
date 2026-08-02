@@ -80,14 +80,9 @@ async function loginUser(req, res) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        const jwtSecret = process.env.JWT_SECRET || process.env.jwt_secret;
-        if (!jwtSecret) {
-          console.warn('JWT secret not set in environment; using temporary development secret');
-        }
-        const token = jwt.sign({ id: user._id }, jwtSecret || 'dev_secret', { expiresIn: '1h' });
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        const cookieOptions = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'Strict' };
-        res.cookie('token', token, cookieOptions);
+        res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'Strict' });
         res.status(200).json({ message: 'Login successful',
             user: { id: user._id, username: user.username, email: user.email } });
     }
