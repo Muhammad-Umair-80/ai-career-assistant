@@ -1,6 +1,6 @@
 import React from 'react'
 import '../auth.form.scss'
-import {useNavigate,Link} from 'react-router'
+import { useNavigate, Link } from 'react-router-dom'
 const Login = () => {
     const navigate = useNavigate();
     const handleSubmit = (e) => {
@@ -26,7 +26,7 @@ const Login = () => {
                     <input type="password" name="password" id="password" placeholder='enter password'   />
                 </div>
 
-                <button className='buton primary-button'>Login</button>
+                <button className='button primary-button'>Login</button>
             </form>
 
             <p> Don't have an account? <Link to="/register" className='link-button'>Register</Link></p>
