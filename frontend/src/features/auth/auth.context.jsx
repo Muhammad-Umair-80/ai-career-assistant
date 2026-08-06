@@ -1,38 +1,19 @@
-import { useState } from 'react'
-import * as api from './services/auth.api'
+import {createContext, useState,useEffect} from 'react'
+import {getMe} from "./services/auth.api"
+export const AuthContext = createContext();
 
-export function useAuth() {
-  const [loading, setLoading] = useState(false)
+export const AuthProvider = ({children}) => {
+    const [user,setUser] = useState(null);
+    const [loading,setLoading] = useState(true);
 
-  const handleLogin = async (email, password) => {
-    setLoading(true)
-    try {
-      const res = await api.login({ email, password })
-      return res
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  const handleRegister = async (data) => {
-    setLoading(true)
-    try {
-      const res = await api.register(data)
-      return res
-    } finally {
-      setLoading(false)
-    }
-  }
+    
 
-  const getMe = async () => {
-    setLoading(true)
-    try {
-      const res = await api.getMe()
-      return res
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  return { loading, handleLogin, handleRegister, getMe }
+    return(
+        <AuthContext.Provider value={{user,setUser,loading,setLoading}}>
+            {children}
+        </AuthContext.Provider>
+    )
 }
+
