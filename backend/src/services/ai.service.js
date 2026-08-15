@@ -84,31 +84,31 @@ const interviewReportSchemaZod = z.fromJSONSchema(interviewGeneratedReportSchema
  * @param {string} selfDescription - The self-description provided by the user.
  * @returns {Promise<Object>} - A promise that resolves to the generated interview report.
  */
-function normalizeInterviewInput(jobDescriptionOrPayload, resumeDescription, selfDescription) {
-    if (typeof jobDescriptionOrPayload === 'object' && jobDescriptionOrPayload !== null) {
-        const payload = jobDescriptionOrPayload;
+function normalizeInterviewInput(arg1, arg2, arg3) {
+    // Support either (payloadObject) or (resumeDescription, jobDescription, selfDescription)
+    if (typeof arg1 === 'object' && arg1 !== null) {
+        const payload = arg1;
         return {
-            jobDescription: payload.jobDescription || payload.job_description || payload.jd,
-            resumeDescription: payload.resumeDescription || payload.resume_description || payload.resume,
-            selfDescription: payload.selfDescription || payload.self_description || payload.aboutMe || payload.self,
+            resumeDescription: payload.resumeDescription || payload.resume_description || payload.resume || payload.resumeText,
+            jobDescription: payload.jobDescription || payload.job_description || payload.jd || payload.job,
+            selfDescription: payload.selfDescription || payload.self_description || payload.aboutMe || payload.self || payload.selfDesc,
         };
     }
 
     return {
-        jobDescription: jobDescriptionOrPayload,
-        resumeDescription,
-        selfDescription,
+        resumeDescription: arg1,
+        jobDescription: arg2,
+        selfDescription: arg3,
     };
 }
 
-async function generateInterviewReport(jobDescriptionOrPayload, resumeDescription, selfDescription) {
-    const normalizedInput = normalizeInterviewInput(jobDescriptionOrPayload, resumeDescription, selfDescription);
-    const { jobDescription, resumeDescription: finalResumeDescription, selfDescription: finalSelfDescription } = normalizedInput;
+async function generateInterviewReport(resumeDescription, jobDescription, selfDescription) {
+    const normalizedInput = normalizeInterviewInput(resumeDescription, jobDescription, selfDescription);
+    const { resumeDescription: finalResumeDescription, jobDescription: finalJobDescription, selfDescription: finalSelfDescription } = normalizedInput;
 
     const missingFields = [];
-    if (!jobDescription) missingFields.push('jobDescription');
     if (!finalResumeDescription) missingFields.push('resumeDescription');
-    if (!finalSelfDescription) missingFields.push('selfDescription');
+    if (!finalJobDescription) missingFields.push('jobDescription');
 
     if (missingFields.length > 0) {
         throw new Error(`Missing required input(s): ${missingFields.join(', ')}`);
@@ -118,8 +118,8 @@ async function generateInterviewReport(jobDescriptionOrPayload, resumeDescriptio
     // const recipeSchema = z.fromJSONSchema(recipeJsonSchema);
 
     const prompt = `generate an interview report based on the following information:
-                    Job Description: ${jobDescription}
-                    Resume Description: ${finalResumeDescription}
+                    resume Description: ${finalResumeDescription}
+                    job Description: ${finalJobDescription}
                     Self Description: ${finalSelfDescription}
                 `;
 
@@ -131,6 +131,7 @@ async function generateInterviewReport(jobDescriptionOrPayload, resumeDescriptio
         config: {
             responseMimeType: "application/json",
             responseSchema: interviewGeneratedReportSchema,
+
         },
     });
     console.log('Received response from Google AI.');

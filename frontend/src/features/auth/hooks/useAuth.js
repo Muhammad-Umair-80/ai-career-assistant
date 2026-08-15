@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { AuthContext } from "../auth.context.jsx";
-import {loginUser , registerUser, logoutUser, getMe} from "../auth.service.jsx";
+import {loginUser , registerUser, logoutUser, getMe} from "../services/auth.api.js";
 
 
 export const useAuth = () => {

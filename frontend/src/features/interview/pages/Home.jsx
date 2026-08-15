@@ -1,0 +1,91 @@
+import React from 'react';
+import '../style/home.scss';
+
+const DocumentIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className="label-icon">
+    <path d="M7 3.5h7.5L18.5 8v11.5a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2v-14a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M14.5 3.5V8h4.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M8.2 11.8h7.6M8.2 15.3h7.6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+  </svg>
+);
+
+const CloudUploadIcon = () => (
+  <svg viewBox="0 0 64 64" aria-hidden="true" className="upload-icon-svg">
+    <path d="M23 48.5h17.5A11.5 11.5 0 0 0 48 26.9a9.8 9.8 0 0 0-1.2-19.3A13.8 13.8 0 0 0 21 16.5a10.4 10.4 0 0 0 2 20.9Z" fill="currentColor" opacity="0.18"/>
+    <path d="M21.8 45.5h20.4a10.2 10.2 0 0 0 .6-20.3 12.7 12.7 0 0 0-24.7 3.8A8.7 8.7 0 0 0 21.8 45.5Zm9.7-13.5v9h2.9v-9h5.3l-6.7-7.1-6.7 7.1h5.2Z" fill="currentColor"/>
+  </svg>
+);
+
+const SparkIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" className="spark-icon">
+    <path d="M12 1.7 14.2 8l6.3 2.2-6.3 2.2L12 18.3l-2.2-5.9-6.3-2.2 6.3-2.2L12 1.7Z" fill="currentColor"/>
+  </svg>
+);
+
+const Home = () => {
+ return (
+   <main className="interview-page">
+     <div className="page-content">
+       <section className="hero">
+         <h1>Prepare for Your Next Big Interview</h1>
+         <p>
+           Provide your target job description and your background details. Our AI mentor will
+           generate a personalized preparation report to boost your confidence.
+         </p>
+       </section>
+
+       <section className="form-panel">
+         <div className="job-column">
+           <label className="field-label" htmlFor="jobDescription">
+             <DocumentIcon />
+             <span>Job Description</span>
+           </label>
+           <textarea
+             id="jobDescription"
+             placeholder="Paste the full job description here..."
+           />
+         </div>
+
+         <div className="side-column">
+           <div className="upload-box">
+             <div className="label-row">
+               <label className="field-label" htmlFor="resumeUpload">
+                 <DocumentIcon />
+                 <span>Resume</span>
+               </label>
+               <small className="hint">(Use resume and self description together for best result)</small>
+             </div>
+
+             <label htmlFor="resumeUpload" className="upload-inner">
+               <div className="upload-icon" aria-hidden="true">
+                 <CloudUploadIcon />
+               </div>
+               <p>Click to upload or drag and drop</p>
+               <small>PDF, DOCX up to 10MB</small>
+             </label>
+
+             <input id="resumeUpload" type="file" accept=".pdf,.doc,.docx" />
+           </div>
+
+           <div className="self-box">
+             <label className="field-label" htmlFor="selfDescription">
+               <DocumentIcon />
+               <span>Self Description</span>
+             </label>
+             <textarea
+               id="selfDescription"
+               placeholder="Briefly describe your key strengths, recent experiences, and what you are looking for..."
+             />
+           </div>
+
+           <button className="generate-btn" type="button">
+             <SparkIcon />
+             <span>Generate Interview Report</span>
+           </button>
+         </div>
+       </section>
+     </div>
+   </main>
+ )
+}
+export default Home;

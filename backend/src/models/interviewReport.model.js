@@ -112,6 +112,6 @@ const interviewReportSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-const InterviewReport = mongoose.model('InterviewReport', interviewReportSchema);
+const InterviewReportModel = mongoose.model('InterviewReport', interviewReportSchema);
 
-module.exports = InterviewReport;
+module.exports = InterviewReportModel;
