@@ -137,7 +137,62 @@ async function generateInterviewReport(resumeDescription, jobDescription, selfDe
     console.log('Received response from Google AI.');
 
     const reportText = response.text;
-    const interviewReport = interviewReportSchemaZod.parse(JSON.parse(reportText));
+    let interviewReport;
+    try {
+        interviewReport = interviewReportSchemaZod.parse(JSON.parse(reportText));
+    } catch (err) {
+        console.error('Schema validation failed for interview report:', err);
+        // Try to parse loosely to preserve as much as possible
+        try {
+            interviewReport = JSON.parse(reportText);
+        } catch (err2) {
+            throw new Error('Failed to parse interview report JSON: ' + err2.message);
+        }
+    }
+
+    // If the model omitted the preparation plan, request a focused preparation plan and attach it
+    if (!interviewReport.preparation || !Array.isArray(interviewReport.preparation) || interviewReport.preparation.length === 0) {
+        console.log('Preparation plan missing from model response — requesting focused preparation plan.');
+        const prepSchema = {
+            type: "array",
+            items: {
+                type: "object",
+                properties: {
+                    day: { type: "number" },
+                    focus: { type: "string" },
+                    task: { type: "string" }
+                },
+                required: ["day", "focus", "task"]
+            }
+        };
+
+        const prepPrompt = `Based on the following interview analysis, generate a preparation plan organized by day. Provide an array of objects with "day" (number), "focus" (short string), and "task" (detailed string).\n\nInterview analysis:\n${JSON.stringify(interviewReport, null, 2)}\n\nReturn only JSON matching the schema.`;
+
+        try {
+            const prepResp = await client.models.generateContent({
+                model: "gemini-3.5-flash-lite",
+                contents: prepPrompt,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: prepSchema,
+                },
+            });
+            const prepText = prepResp.text;
+            try {
+                const prepArray = JSON.parse(prepText);
+                if (Array.isArray(prepArray)) {
+                    interviewReport.preparation = prepArray;
+                } else {
+                    console.warn('Preparation response was not an array; ignoring.');
+                }
+            } catch (parseErr) {
+                console.warn('Failed to parse preparation response JSON:', parseErr);
+            }
+        } catch (prepErr) {
+            console.error('Error requesting preparation plan:', prepErr);
+        }
+    }
+
     return interviewReport;
 }
 
