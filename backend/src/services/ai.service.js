@@ -193,6 +193,59 @@ async function generateInterviewReport(resumeDescription, jobDescription, selfDe
         }
     }
 
+    // Normalize field names to match the Mongoose model
+    // Model expects `preparations` (plural). Accept many variants from the AI and normalize.
+    try {
+        // Map singular `preparation` -> `preparations`
+        if (interviewReport.preparation && !interviewReport.preparations) {
+            interviewReport.preparations = interviewReport.preparation;
+            delete interviewReport.preparation;
+        }
+
+        // Common alternative names
+        const altNames = ['preparationPlan', 'preparation_plan', 'preparationsPlan', 'preparationList'];
+        for (const name of altNames) {
+            if (interviewReport[name] && !interviewReport.preparations) {
+                interviewReport.preparations = interviewReport[name];
+                delete interviewReport[name];
+                break;
+            }
+        }
+
+        // If still missing, try to find a top-level candidate that looks like the preparation array
+        if (!Array.isArray(interviewReport.preparations) || interviewReport.preparations.length === 0) {
+            for (const k of Object.keys(interviewReport)) {
+                const val = interviewReport[k];
+                if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') {
+                    const sample = val[0];
+                    const hasDay = Object.prototype.hasOwnProperty.call(sample, 'day');
+                    const hasFocus = Object.prototype.hasOwnProperty.call(sample, 'focus');
+                    const hasTask = Object.prototype.hasOwnProperty.call(sample, 'task');
+                    if (hasDay && hasFocus && hasTask) {
+                        interviewReport.preparations = val;
+                        // remove the original key to avoid accidental mapping into other model fields
+                        if (k !== 'preparations') delete interviewReport[k];
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Ensure preparations is an array (at minimum empty array expected by model)
+        if (!Array.isArray(interviewReport.preparations)) {
+            interviewReport.preparations = Array.isArray(interviewReport.preparations) ? interviewReport.preparations : [];
+        }
+
+        // Defensive: prevent the AI from injecting top-level DB fields like _id or user objects
+        if (interviewReport._id) delete interviewReport._id;
+        if (interviewReport.user && (typeof interviewReport.user === 'object' || Array.isArray(interviewReport.user))) {
+            // If user is not a MongoDB ObjectId string, remove it to avoid overwriting relationships.
+            delete interviewReport.user;
+        }
+    } catch (normErr) {
+        console.warn('Error normalizing interview report fields:', normErr);
+    }
+
     return interviewReport;
 }
 
