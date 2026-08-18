@@ -22,6 +22,13 @@ function conditionalUpload(req, res, next) {
 router.post('/interview', conditionalUpload, interviewController.generateInterviewReportController);
 
 /**
+ * @route POST /interview/resume/pdf/:interviewId
+ * @description Generate a PDF resume for an existing interview report
+ * @access private
+ */
+router.post('/resume/pdf/:interviewId', authenticateToken.authenticateToken, interviewController.generateResumePdfController);
+
+/**
  * @route GET /api/interview/report/:interviewId
  * @description get interview report by ID
  * @access private

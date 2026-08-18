@@ -99,9 +99,42 @@ async function getInterviewReportByIdController(req, res) {
     });
 }
 
+async function generateResumePdfController(req, res) {
+    try {
+        const { interviewId } = req.params;
+        if (!interviewId) return res.status(400).json({ error: 'interviewId parameter is required' });
+
+        const interviewReport = await InterviewReportModel.findOne({ _id: interviewId, user: req.user ? req.user._id : null });
+        if (!interviewReport) {
+            return res.status(404).json({ error: 'Interview report not found' });
+        }
+
+        const aiService = require('../services/ai.service');
+        const pdfBuffer = await aiService.generateResumePdf({
+            resume: interviewReport.resumeDescription,
+            selfDescription: interviewReport.selfDescription,
+            jobDescription: interviewReport.jobDescription,
+        });
+
+        if (!pdfBuffer) {
+            return res.status(500).json({ error: 'Failed to generate PDF' });
+        }
+
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename="resume-${interviewId}.pdf"`,
+        });
+        return res.send(pdfBuffer);
+    } catch (err) {
+        console.error('Error generating resume PDF:', err);
+        return res.status(500).json({ error: 'Failed to generate resume PDF' });
+    }
+}
+
 module.exports = {
     generateInterviewReportController,
     getInterviewReportByIdController,
-    getAllInterviewReportsController    
+    getAllInterviewReportsController,
+    generateResumePdfController
 };
 
