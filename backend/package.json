@@ -30,6 +30,7 @@
     "mongoose": "^9.9.1",
     "multer": "^2.2.0",
     "pdf-parse": "^2.4.5",
-    "pdfjs-dist": "^6.2.108"
+    "pdfjs-dist": "^6.2.108",
+    "puppeteer": "^25.8.0"
   }
 }

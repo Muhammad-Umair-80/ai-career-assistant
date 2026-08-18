@@ -1,68 +1,69 @@
-const {generateInterviewReport, getInterviewReportById, getAllInterviewReports} = require('../services/interview.api');
-const {useContext, useState} = require('react');
-const {InterviewContext} = require('../interview.context');
-
+import { useContext } from 'react';
+import {
+  generateInterviewReport,
+  getInterviewReportById,
+  getAllInterviewReports,
+} from '../services/interview.api';
+import { InterviewContext } from '../interview.context';
 
 export const useInterview = () => {
-    const context = useContext(InterviewContext);
+  const context = useContext(InterviewContext);
 
-    if (!context) {
-        throw new Error('useInterview must be used within an InterviewProvider');
-    }
+  if (!context) {
+    throw new Error('useInterview must be used within an InterviewProvider');
+  }
 
-    const {loading, setLoading, report, setReport, reports, setReports} = context;
+  const { loading, setLoading, report, setReport, reports, setReports } = context;
 
-    const generateReport = async (jobDescription, resumeFile, selfDescription) => {
-        setLoading(true);
-        let data= null;
-        try {
-            const data = await generateInterviewReport(jobDescription, resumeFile, selfDescription);
-            setReport(data.interviewReport);
-        } catch (error) {
-            console.error('Error generating interview report:', error);
-        } finally {
-            setLoading(false);
-        }
-
-        return data.interviewReport;
-    };
-
-    const getReportById = async (interviewId) => {
+  const generateReport = async (jobDescription, resumeFile, selfDescription) => {
     setLoading(true);
-    let data = null;
     try {
-        const data = await getInterviewReportById(interviewId);
-        setReport(data.interviewReport);
+      const data = await generateInterviewReport(jobDescription, resumeFile, selfDescription);
+      setReport(data?.interviewReport ?? null);
+      return data?.interviewReport ?? null;
     } catch (error) {
-        console.error('Error fetching interview report by ID:', error);
+      console.error('Error generating interview report:', error);
+      return null;
+    } finally {
+      setLoading(false);
     }
-    finally {
-        setLoading(false);
-    }
-    return data.interviewReport
-}
-const getAllReports = async () => {
-    setLoading(true);   
-    let data = null;
+  };
+
+  const getReportById = async (interviewId) => {
+    setLoading(true);
     try {
-        const data = await getAllInterviewReports();
-        setReports(data.interviewReports);
+      const data = await getInterviewReportById(interviewId);
+      setReport(data?.interviewReport ?? null);
+      return data?.interviewReport ?? null;
     } catch (error) {
-        console.error('Error fetching all interview reports:', error);
-    }   
-    finally {
-        setLoading(false);
+      console.error('Error fetching interview report by ID:', error);
+      return null;
+    } finally {
+      setLoading(false);
     }
-    return data.interviewReports;
+  };
 
-
-    return {
-        loading,
-        report,
-        reports,
-        generateReport,
-        getReportById,
-        getAllReports
+  const getAllReports = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllInterviewReports();
+      const nextReports = data?.interviewReports ?? [];
+      setReports(nextReports);
+      return nextReports;
+    } catch (error) {
+      console.error('Error fetching all interview reports:', error);
+      return [];
+    } finally {
+      setLoading(false);
     }
+  };
 
-}}
+  return {
+    loading,
+    report,
+    reports,
+    generateReport,
+    getReportById,
+    getAllReports,
+  };
+};

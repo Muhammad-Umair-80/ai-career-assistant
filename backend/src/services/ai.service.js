@@ -16,6 +16,7 @@ const client = new GoogleGenAI({ apiKey: googleGenAiApiKey });
 const interviewGeneratedReportSchema = {
     type: "object",
     properties: {
+        title: { type: "string", description: "The title of the interview report" },
         matchScore: { type: "number", description: "Overall feedback on the candidate's performance in the interview" },
         technicalQuestions: {
             type: "array",
@@ -69,11 +70,7 @@ const interviewGeneratedReportSchema = {
             },
         },
     },
-    title:{
-        type: "string",
-        description: "The title of the interview report"
-    },
-    required: ["matchScore", "technicalQuestions", "behavioralQuestions", "skillGaps", "preparation"],
+    required: ["title", "matchScore", "technicalQuestions", "behavioralQuestions", "skillGaps", "preparation"],
 }
 
 const interviewReportSchemaZod = z.fromJSONSchema(interviewGeneratedReportSchema);

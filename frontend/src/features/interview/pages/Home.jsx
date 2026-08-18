@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../style/home.scss';
+import { InterviewProvider } from '../interview.context';
 
 const DocumentIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className="label-icon">
@@ -26,6 +27,7 @@ const SparkIcon = () => (
 import { submitInterview } from './services/interview.api';
 
 const Home = () => {
+  const { reports} = InterviewProvider();
  const [jobDescription, setJobDescription] = useState('');
  const [selfDescription, setSelfDescription] = useState('');
  const [resumeFile, setResumeFile] = useState(null);
@@ -142,6 +144,31 @@ const Home = () => {
              <SparkIcon />
              <span>{loading ? 'Generating…' : 'Generate Interview Report'}</span>
            </button>
+
+            {/* recent report list*/}
+            {reports.length > 0 && (
+              <div className="recent-reports">
+                <h3>Recent Reports</h3>
+                <ul className='reportlist'>
+                  {reports.map((report) => (
+                    <li key={report._id} className='report-item' onClick={()=> navigate(`/interview/${report._id}`)}>
+                      <h3>{report.title}</h3>
+                      <p className='report-meta'> Generated on {new Date(report.CreatedAt).toLocaleDateString()} </p>
+                      <p className={`match-score ${report.matchScore > 70 ? 'high' : report.matchScore > 50 ? 'medium' : 'low'}`}>
+                        Match Score: {report.matchScore}%
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+           {/* page footer */}
+           <footer className="footer">
+              <p>
+                Powered by <a href="https://openai.com/" target="_blank" rel="noopener noreferrer">OpenAI</a> and <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              </p>
+            </footer>
 
            {error && <div className="error">{error}</div>}
            {success && <div className="success">{success}</div>}
