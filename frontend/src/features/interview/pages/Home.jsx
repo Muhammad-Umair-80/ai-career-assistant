@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../style/home.scss';
 
 const DocumentIcon = () => (
@@ -22,7 +23,62 @@ const SparkIcon = () => (
   </svg>
 );
 
+import { submitInterview } from './services/interview.api';
+
 const Home = () => {
+ const [jobDescription, setJobDescription] = useState('');
+ const [selfDescription, setSelfDescription] = useState('');
+ const [resumeFile, setResumeFile] = useState(null);
+ const [loading, setLoading] = useState(false);
+ const [error, setError] = useState(null);
+ const [success, setSuccess] = useState(null);
+ const fileInputRef = useRef(null);
+ const navigate = useNavigate();
+
+ async function handleGenerate() {
+   setError(null);
+   setSuccess(null);
+   setLoading(true);
+   try {
+     const result = await submitInterview({ resumeFile, resumeDescription: null, jobDescription, selfDescription });
+     console.log('generate result:', result);
+
+     const interviewReport = result?.interviewReport ?? result;
+     const interviewId = interviewReport?._id || interviewReport?.id;
+
+     if (interviewId) {
+       navigate(`/interview/${interviewId}`, {
+         state: { report: interviewReport },
+       });
+       return;
+     }
+
+     setSuccess('Interview report generated successfully');
+   } catch (err) {
+     console.error('generate error', err);
+     setError(err?.response?.data?.error || err.message || 'Failed to generate interview report');
+   } finally {
+     setLoading(false);
+   }
+ }
+
+ function handleFileChange(e) {
+   setError(null);
+   const file = e.target.files && e.target.files[0];
+   if (file) {
+     // Basic client-side validation
+     if (file.size > 10 * 1024 * 1024) {
+       setError('File size exceeds 10MB limit');
+       fileInputRef.current.value = '';
+       setResumeFile(null);
+       return;
+     }
+     setResumeFile(file);
+   } else {
+     setResumeFile(null);
+   }
+ }
+
  return (
    <main className="interview-page">
      <div className="page-content">
@@ -42,6 +98,8 @@ const Home = () => {
            </label>
            <textarea
              id="jobDescription"
+             value={jobDescription}
+             onChange={(e) => setJobDescription(e.target.value)}
              placeholder="Paste the full job description here..."
            />
          </div>
@@ -60,11 +118,11 @@ const Home = () => {
                <div className="upload-icon" aria-hidden="true">
                  <CloudUploadIcon />
                </div>
-               <p>Click to upload or drag and drop</p>
+               <p>{resumeFile ? resumeFile.name : 'Click to upload or drag and drop'}</p>
                <small>PDF, DOCX up to 10MB</small>
              </label>
 
-             <input id="resumeUpload" type="file" accept=".pdf,.doc,.docx" />
+             <input ref={fileInputRef} id="resumeUpload" type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} />
            </div>
 
            <div className="self-box">
@@ -74,14 +132,19 @@ const Home = () => {
              </label>
              <textarea
                id="selfDescription"
+               value={selfDescription}
+               onChange={(e) => setSelfDescription(e.target.value)}
                placeholder="Briefly describe your key strengths, recent experiences, and what you are looking for..."
              />
            </div>
 
-           <button className="generate-btn" type="button">
+           <button className="generate-btn" type="button" onClick={handleGenerate} disabled={loading}>
              <SparkIcon />
-             <span>Generate Interview Report</span>
+             <span>{loading ? 'Generating…' : 'Generate Interview Report'}</span>
            </button>
+
+           {error && <div className="error">{error}</div>}
+           {success && <div className="success">{success}</div>}
          </div>
        </section>
      </div>

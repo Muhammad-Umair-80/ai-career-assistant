@@ -21,4 +21,11 @@ function conditionalUpload(req, res, next) {
  */
 router.post('/interview', conditionalUpload, interviewController.generateInterviewReportController);
 
+/**
+ * @route GET /auth/interview/:interviewId
+ * @description Get interview report by id
+ * @access private
+ */
+router.get('/interview/:interviewId', interviewController.getInterviewReportController);
+
 module.exports = router;

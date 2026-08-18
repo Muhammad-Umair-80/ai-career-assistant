@@ -5,18 +5,25 @@ import Register from './features/auth/pages/register'
 import Home from './features/interview/pages/Home'
 import Protected from './features/auth/components/protected'
 import Interview from './features/interview/pages/interview'
+import { AuthProvider } from './features/auth/auth.context'
+import InterviewProvider from './features/interview/interview.context'
+
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Home />} />
-        <Route path="/interview/:interviewId" element={<Protected><Interview /></Protected>} />
-        <Route path="/*" element={<div style={{padding:20}}>Page not found</div>} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <InterviewProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/interview/:interviewId" element={<Protected><Interview /></Protected>} />
+            <Route path="/*" element={<div style={{padding:20}}>Page not found</div>} />
+          </Routes>
+        </BrowserRouter>
+      </InterviewProvider>
+    </AuthProvider>
   )
 }
 

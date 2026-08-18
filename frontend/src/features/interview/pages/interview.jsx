@@ -1,14 +1,85 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useLocation, useParams } from 'react-router-dom'
 import '../style/interview.scss'
+import { getInterviewReport } from './services/interview.api'
 
-// Interview page expects a `report` prop with the shape shown in the request.
-// If no report is provided it will render a simple empty-state.
-const Interview = ({ report = null }) => {
+const Interview = ({ report: initialReport = null }) => {
+  const location = useLocation();
+  const { interviewId } = useParams();
+  const [report, setReport] = useState(initialReport || location.state?.report || null);
+  const [loading, setLoading] = useState(!initialReport && !!interviewId);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const routeReport = location.state?.report || initialReport;
+    if (routeReport) {
+      setReport(routeReport);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    if (!interviewId) {
+      setLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchReport = async () => {
+      setLoading(true);
+      try {
+        const fetchedReport = await getInterviewReport(interviewId);
+        if (isMounted) {
+          setReport(fetchedReport);
+          setError(null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err?.response?.data?.error || err.message || 'Failed to load interview report');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchReport();
+    return () => {
+      isMounted = false;
+    };
+  }, [initialReport, interviewId, location.state]);
+
   const r = report || {};
   const technical = r.technicalQuestions || [];
   const behavioral = r.behavioralQuestions || [];
   const preparations = r.preparations || [];
   const skillGaps = r.skillGaps || [];
+
+  if (loading) {
+    return (
+      <div className="interview-page">
+        <div className="page-content interview-container">
+          <div className="panel">
+            <h3>Loading your interview report...</h3>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="interview-page">
+        <div className="page-content interview-container">
+          <div className="panel">
+            <h3>Unable to load interview report</h3>
+            <p className="muted">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="interview-page">

@@ -69,6 +69,10 @@ const interviewGeneratedReportSchema = {
             },
         },
     },
+    title:{
+        type: "string",
+        description: "The title of the interview report"
+    },
     required: ["matchScore", "technicalQuestions", "behavioralQuestions", "skillGaps", "preparation"],
 }
 
