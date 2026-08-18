@@ -1,7 +1,12 @@
 ﻿const express = require('express');
 const multer = require('multer');
-const interviewController = require('../controllers/interview.controller');
-const authenticateToken = require('../middlewares/auth.middleware');
+const {
+    generateInterviewReportController,
+    getInterviewReportByIdController,
+    getAllInterviewReportsController,
+    generateResumePdfController
+} = require('../controllers/interview.controller');
+const { authenticateToken } = require('../middlewares/auth.middleware');
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -19,28 +24,28 @@ function conditionalUpload(req, res, next) {
  * Accepts JSON with fields: resumeDescription, selfDescription, jobDescription.
  * Optionally supports multipart/form-data with a PDF upload field named `resumeFile`.
  */
-router.post('/interview', conditionalUpload, interviewController.generateInterviewReportController);
+router.post('/interview', conditionalUpload, generateInterviewReportController);
 
 /**
  * @route POST /interview/resume/pdf/:interviewId
  * @description Generate a PDF resume for an existing interview report
  * @access private
  */
-router.post('/resume/pdf/:interviewId', authenticateToken.authenticateToken, interviewController.generateResumePdfController);
+router.post('/resume/pdf/:interviewId', authenticateToken, generateResumePdfController);
 
 /**
  * @route GET /api/interview/report/:interviewId
  * @description get interview report by ID
  * @access private
  */
-router.get("/report/:interviewId",authenticateToken.authenticateToken , interviewController.getInterviewReportByIdController )
+router.get("/report/:interviewId", authenticateToken, getInterviewReportByIdController);
 
 /**
  * @route GET /api/interview
  * @description get all interview reports for the authenticated user
  * @access private
  */
-router.get("/", authenticateToken.authenticateToken, interviewController.getAllInterviewReportsController);
+router.get("/", authenticateToken, getAllInterviewReportsController);
  
 
 
