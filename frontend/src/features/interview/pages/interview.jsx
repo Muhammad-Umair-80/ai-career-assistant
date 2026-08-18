@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import '../style/interview.scss'
+import { useInterview } from '../hooks/useInterview'
 import { getInterviewReport } from './services/interview.api'
 
 const Interview = ({ report: initialReport = null }) => {
   const location = useLocation();
   const { interviewId } = useParams();
   const [report, setReport] = useState(initialReport || location.state?.report || null);
+  const {getResumePdf} = useInterview();
   const [loading, setLoading] = useState(!initialReport && !!interviewId);
   const [error, setError] = useState(null);
 
@@ -103,7 +105,7 @@ const Interview = ({ report: initialReport = null }) => {
                 )}
               </ul>
             </section>
-
+                
             <section className="panel">
               <h3>Behavioral Questions</h3>
               <ul className="qa-list">
@@ -118,7 +120,7 @@ const Interview = ({ report: initialReport = null }) => {
                 )}
               </ul>
             </section>
-
+                
             <section className="panel">
               <h3>Road Map</h3>
               <ol className="roadmap">
@@ -132,7 +134,10 @@ const Interview = ({ report: initialReport = null }) => {
                   ))
                 )}
               </ol>
+              
             </section>
+
+            
           </aside>
 
           <main className="main-col panel">
@@ -178,9 +183,21 @@ const Interview = ({ report: initialReport = null }) => {
                 {skillGaps.length === 0 ? <div className="muted">No gaps identified</div> : skillGaps.map((s, i) => (
                   <div className={`gap-pill severity-${s.severity || 'medium'}`} key={i}>{s.skill}</div>
                 ))}
+                
               </div>
+              
             </div>
+            <button 
+            onClick={() => { getResumePdf(interviewId); }}
+            className="button primary-button download-btn" disabled={!interviewId} >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-download" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1    
+  0-.708.708l3 3z"/>
+              </svg>
+              Download resume</button>
           </aside>
+          
         </div>
       </div>
     </div>

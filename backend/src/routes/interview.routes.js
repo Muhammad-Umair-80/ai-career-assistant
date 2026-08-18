@@ -24,7 +24,8 @@ function conditionalUpload(req, res, next) {
  * Accepts JSON with fields: resumeDescription, selfDescription, jobDescription.
  * Optionally supports multipart/form-data with a PDF upload field named `resumeFile`.
  */
-router.post('/interview', conditionalUpload, generateInterviewReportController);
+// Mount POST on the router root so when the router is used with app.use('/interview', ...) the endpoint becomes POST /interview
+router.post('/', conditionalUpload, generateInterviewReportController);
 
 /**
  * @route POST /interview/resume/pdf/:interviewId

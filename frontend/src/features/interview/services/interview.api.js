@@ -48,3 +48,13 @@ export const getAllInterviewReports = async () => {
     const response = await api.get('/auth');
     return response.data;
 }
+
+
+export const generateResumePdf = async (interviewReportId) => {
+    
+    const response = await api.post(`/interview/resume/pdf/${interviewReportId}`, {}, {
+        responseType: 'blob', // Expect a binary response (PDF)
+    });
+    return response.data; // This will be a Blob representing the PDF
+
+}   

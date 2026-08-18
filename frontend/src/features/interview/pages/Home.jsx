@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../style/home.scss';
-import { InterviewProvider } from '../interview.context';
+import { useInterview } from '../interview.context';
 
 const DocumentIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className="label-icon">
@@ -27,7 +27,7 @@ const SparkIcon = () => (
 import { submitInterview } from './services/interview.api';
 
 const Home = () => {
-  const { reports} = InterviewProvider();
+ const { reports } = useInterview();
  const [jobDescription, setJobDescription] = useState('');
  const [selfDescription, setSelfDescription] = useState('');
  const [resumeFile, setResumeFile] = useState(null);

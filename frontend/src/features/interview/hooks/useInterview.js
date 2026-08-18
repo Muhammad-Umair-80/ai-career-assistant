@@ -3,6 +3,7 @@ import {
   generateInterviewReport,
   getInterviewReportById,
   getAllInterviewReports,
+  generateResumePdf,
 } from '../services/interview.api';
 import { InterviewContext } from '../interview.context';
 
@@ -14,6 +15,7 @@ export const useInterview = () => {
   }
 
   const { loading, setLoading, report, setReport, reports, setReports } = context;
+
 
   const generateReport = async (jobDescription, resumeFile, selfDescription) => {
     setLoading(true);
@@ -58,6 +60,30 @@ export const useInterview = () => {
     }
   };
 
+  const getResumePdf = async (interviewId) => {
+    if (!interviewId) return null;
+    setLoading(true);
+    try {
+      // generateResumePdf returns a Blob (see services/interview.api.js)
+      const blob = await generateResumePdf(interviewId);
+      const filename = `resume-${interviewId}.pdf`;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      return true;
+    } catch (err) {
+      console.error('Error downloading resume pdf:', err);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     report,
@@ -65,5 +91,6 @@ export const useInterview = () => {
     generateReport,
     getReportById,
     getAllReports,
+    getResumePdf,
   };
 };

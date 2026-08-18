@@ -258,7 +258,14 @@ async function generatePdfFromHtml(htmlContent){
     const page = await browser.newPage();
     await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
 
-    const pdfBuffer = await page.pdf({ format: 'A4' });
+    const pdfBuffer = await page.pdf({ format: 'A4' , margin:
+        {
+            top:"20mm",
+            bottom : "20mm",
+            left:"15mm",
+            right: "15mm"
+        }
+     });
 
     await browser.close();
 
@@ -278,6 +285,11 @@ async function generateResumePdf({resume , selfDescription , jobDescription}){
                     job Description : ${jobDescription}
 
                     the response should be a JSON object with a single field "html" which contain the HTML content of the resume which can be converted to PDF usinf any library like puppeteer
+                    the resume should be tailord for athe given job description and should highlighted the candidate strenght and relevent experience  and the resume must be of one page not excluded from theone page.
+                    the content of resume should be not sound like its genrated by AI and should be as close as possible to a real humen-wrotten  resume.
+                    you can highlight the content using some color or different font  but th overall design should be simple and professional
+                    the content should be AS freindly.
+                    the resume should not be lenghty.
                     `
 
     const response = await client.models.generateContent({

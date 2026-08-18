@@ -43,7 +43,7 @@ app.use(cors({
 const authRoutes = require('./routes/auth.routes');
 const interviewRoutes = require('./routes/interview.routes');
 app.use('/auth', authRoutes);
-app.use('/auth', interviewRoutes);
+app.use('/interview', interviewRoutes);
 
 
 module.exports = app;
