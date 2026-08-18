@@ -56,6 +56,9 @@ const Interview = ({ report: initialReport = null }) => {
   const preparations = r.preparations || [];
   const skillGaps = r.skillGaps || [];
 
+  const [selectedQuestion, setSelectedQuestion] = useState(null); // { section: 'technical'|'behavioral', index }
+  const [selectedPreparation, setSelectedPreparation] = useState(null); // index
+
   if (loading) {
     return (
       <div className="interview-page">
@@ -89,35 +92,45 @@ const Interview = ({ report: initialReport = null }) => {
             <section className="panel">
               <h3>Technical Questions</h3>
               <ul className="qa-list">
-                {technical.length === 0 ? <li className="muted">No technical questions</li> : technical.map((t, i) => (
-                  <li key={i}>
-                    <strong>{t.question}</strong>
-                    <p className="intention">{t.intension}</p>
-                    <p className="answer">{t.answer}</p>
-                  </li>
-                ))}
+                {technical.length === 0 ? (
+                  <li className="muted">No technical questions</li>
+                ) : (
+                  technical.map((t, i) => (
+                    <li key={i} className={`qa-item ${selectedQuestion?.section === 'technical' && selectedQuestion.index === i ? 'active' : ''}`} onClick={() => { setSelectedQuestion({ section: 'technical', index: i }); setSelectedPreparation(null); }} role="button" tabIndex={0}>
+                      <strong>{t.question}</strong>
+                    </li>
+                  ))
+                )}
               </ul>
             </section>
 
             <section className="panel">
               <h3>Behavioral Questions</h3>
               <ul className="qa-list">
-                {behavioral.length === 0 ? <li className="muted">No behavioral questions</li> : behavioral.map((b, i) => (
-                  <li key={i}>
-                    <strong>{b.question}</strong>
-                    <p className="intention">{b.intension}</p>
-                    <p className="answer">{b.answer}</p>
-                  </li>
-                ))}
+                {behavioral.length === 0 ? (
+                  <li className="muted">No behavioral questions</li>
+                ) : (
+                  behavioral.map((b, i) => (
+                    <li key={i} className={`qa-item ${selectedQuestion?.section === 'behavioral' && selectedQuestion.index === i ? 'active' : ''}`} onClick={() => { setSelectedQuestion({ section: 'behavioral', index: i }); setSelectedPreparation(null); }} role="button" tabIndex={0}>
+                      <strong>{b.question}</strong>
+                    </li>
+                  ))
+                )}
               </ul>
             </section>
 
             <section className="panel">
               <h3>Road Map</h3>
               <ol className="roadmap">
-                {preparations.length === 0 ? <li className="muted">No preparations</li> : preparations.map((p, i) => (
-                  <li key={i}><span className="day">Day {p.day}</span> <span className="focus">{p.focus}:</span> <span className="task">{p.task}</span></li>
-                ))}
+                {preparations.length === 0 ? (
+                  <li className="muted">No preparations</li>
+                ) : (
+                  preparations.map((p, i) => (
+                    <li key={i} className={`prep-item ${selectedPreparation === i ? 'active' : ''}`} onClick={() => { setSelectedPreparation(i); setSelectedQuestion(null); }} role="button" tabIndex={0}>
+                      <span className="day">Day {p.day}</span> <span className="focus">{p.focus}</span>
+                    </li>
+                  ))
+                )}
               </ol>
             </section>
           </aside>
@@ -126,8 +139,34 @@ const Interview = ({ report: initialReport = null }) => {
             <div className="main-inner">
               <div className="score">Match Score: <span className="score-value">{r.matchScore ?? '—'}</span></div>
               <div className="main-content">
-                <h2>Main Content</h2>
-                <p className="muted">This area is reserved for the detailed analysis, suggestions, or any larger piece of content you want to show from the report.</p>
+                {selectedQuestion ? (
+                  (() => {
+                    const { section, index } = selectedQuestion;
+                    const item = section === 'technical' ? technical[index] : behavioral[index];
+                    return (
+                      <div className="qa-detail">
+                        <h2>{item.question}</h2>
+                        {item.intension && <p className="intention"><strong>Intention:</strong> {item.intension}</p>}
+                        {item.answer && <div className="answer"><h3>Suggested Answer</h3><p>{item.answer}</p></div>}
+                      </div>
+                    );
+                  })()
+                ) : selectedPreparation !== null ? (
+                  (() => {
+                    const p = preparations[selectedPreparation];
+                    return (
+                      <div className="prep-detail">
+                        <h2>Day {p.day}: {p.focus}</h2>
+                        <p>{p.task}</p>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <>
+                    <h2>Main Content</h2>
+                    <p className="muted">This area is reserved for the detailed analysis, suggestions, or any larger piece of content you want to show from the report.</p>
+                  </>
+                )}
               </div>
             </div>
           </main>

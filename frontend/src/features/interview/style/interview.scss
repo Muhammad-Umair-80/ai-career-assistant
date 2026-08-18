@@ -44,6 +44,37 @@
   margin-bottom: 0.25rem;
 }
 
+.qa-item,
+.prep-item {
+  cursor: pointer;
+  padding: 0.6rem;
+  border-radius: 8px;
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+.qa-item:hover,
+.prep-item:hover {
+  background: rgba(255,255,255,0.02);
+  transform: translateY(-1px);
+}
+
+.qa-item.active,
+.prep-item.active {
+  background: rgba(255,255,255,0.03);
+  border-left: 3px solid var(--green-dark);
+}
+
+.qa-detail h2,
+.prep-detail h2 {
+  margin: 0 0 0.5rem 0;
+}
+
+.qa-detail .answer {
+  margin-top: 0.75rem;
+  line-height: 1.5;
+}
+
+
 .intention {
   font-size: 0.88rem;
   color: var(--muted);
