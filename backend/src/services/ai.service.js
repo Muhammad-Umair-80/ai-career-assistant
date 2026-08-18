@@ -1,5 +1,7 @@
 const { GoogleGenAI } = require ( "@google/genai");
 const { z } = require("zod");
+const puppeteer = require("puppeteer");
+
 const googleGenAiApiKey =
     process.env.GOOGLE_GENAI_API_KEY ||
     process.env.GEMINI_API_KEY ||
@@ -250,10 +252,57 @@ async function generateInterviewReport(resumeDescription, jobDescription, selfDe
     return interviewReport;
 }
 
+
+async function generatePdfFromHtml(htmlContent){
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+
+    const pdfBuffer = await page.pdf({ format: 'A4' });
+
+    await browser.close();
+
+    return pdfBuffer
+}
+
+async function generateResumePdf({resume , selfDescription , jobDescription}){
+    const resumePdfSchema = {
+        type: "object",
+        properties: {
+            resume: { type: "string", description: "The Html content of the resume which can be converted to PDF using any library like puppeteer " },
+    }}
+
+    const prompt = `generate a resume in HTML format based on the following information:
+                    Resume: ${resume}
+                    self Description: ${selfDescription}
+                    job Description : ${jobDescription}
+
+                    the response should be a JSON object with a single field "html" which contain the HTML content of the resume which can be converted to PDF usinf any library like puppeteer
+                    `
+
+    const response = await client.models.generateContent({
+
+        model: "gemini-3.5-flash-lite",
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema:  resumePdfSchema,
+
+        },
+    
+    })
+    const jsonContent = JSON.parse(response.text);
+    const pdfBuffer = await generatePdfFromHtml(jsonContent.resume);
+    return pdfBuffer;
+
+}
+
+
 module.exports = {
     generateInterviewReport,
     interviewGeneratedReportSchema,
     interviewReportSchemaZod,
+    generateResumePdf
 };
 
 
