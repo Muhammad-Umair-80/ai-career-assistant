@@ -1,9 +1,22 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:3000', // Replace with your backend API URL
+    baseURL: (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) || 'http://localhost:3000',
     withCredentials: true, // Allow cookies to be sent
 });
+
+async function tryPostTwoPaths(pathAuth, pathPublic, formData, config) {
+    try {
+        const resp = await api.post(pathAuth, formData, config);
+        return resp.data;
+    } catch (err) {
+        if (err.response && err.response.status === 404) {
+            const resp2 = await api.post(pathPublic, formData, config);
+            return resp2.data;
+        }
+        throw err;
+    }
+}
 
 
 /**
@@ -17,17 +30,12 @@ const api = axios.create({
  */
 export const generateInterviewReport = async (jobDescription , resumeFile, selfDescription) => {
     const formData = new FormData();
-    formData.append('resume', resumeFile);
-    formData.append('jobDescription', jobDescription);
-    formData.append('selfDescription', selfDescription);
+    if (resumeFile) formData.append('resumeFile', resumeFile);
+    if (jobDescription) formData.append('jobDescription', jobDescription);
+    if (selfDescription) formData.append('selfDescription', selfDescription);
 
-    const response = await api.post('/auth/interview', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-
-        },
-    });
-    return response.data;
+    // Try authenticated endpoint first, fall back to public endpoint
+    return await tryPostTwoPaths('/auth/interview', '/interview', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 }
 
 /**
@@ -36,8 +44,18 @@ export const generateInterviewReport = async (jobDescription , resumeFile, selfD
  * @returns 
  */
 export const getInterviewReportById = async (interviewId) => {
-    const response = await api.get(`/auth/report/${interviewId}`);
-    return response.data;
+    if (!interviewId) throw new Error('interviewId is required');
+    try {
+        const response = await api.get(`/interview/report/${interviewId}`);
+        return response.data;
+    } catch (err) {
+        // Fallback to an auth-prefixed route if server uses that
+        if (err.response && err.response.status === 404) {
+            const response = await api.get(`/auth/interview/report/${interviewId}`);
+            return response.data;
+        }
+        throw err;
+    }
 }
 
 /**
@@ -45,16 +63,48 @@ export const getInterviewReportById = async (interviewId) => {
  * @returns 
  */
 export const getAllInterviewReports = async () => {
-    const response = await api.get('/auth');
-    return response.data;
+    try {
+        const response = await api.get('/interview');
+        return response.data;
+    } catch (err) {
+        if (err.response && err.response.status === 404) {
+            const response = await api.get('/auth/interview');
+            return response.data;
+        }
+        throw err;
+    }
 }
 
 
 export const generateResumePdf = async (interviewReportId) => {
-    
     const response = await api.post(`/interview/resume/pdf/${interviewReportId}`, {}, {
         responseType: 'blob', // Expect a binary response (PDF)
     });
     return response.data; // This will be a Blob representing the PDF
 
-}   
+};
+
+export async function submitInterview({ resumeFile, resumeDescription, jobDescription, selfDescription }) {
+    // If resumeFile provided, send multipart/form-data
+    if (resumeFile) {
+        const fd = new FormData();
+        fd.append('resumeFile', resumeFile);
+        if (jobDescription) fd.append('jobDescription', jobDescription);
+        if (selfDescription) fd.append('selfDescription', selfDescription);
+        return await tryPostTwoPaths('/auth/interview', '/interview', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    }
+
+    // Otherwise send JSON
+    const payload = { resumeDescription, jobDescription, selfDescription };
+    try {
+        const resp = await api.post('/interview', payload);
+        return resp.data;
+    } catch (err) {
+        if (err.response && err.response.status === 404) {
+            const resp2 = await api.post('/auth/interview', payload);
+            return resp2.data;
+        }
+        throw err;
+    }
+}
+

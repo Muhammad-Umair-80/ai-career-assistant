@@ -142,6 +142,10 @@ const Interview = ({ report: initialReport = null }) => {
 
           <main className="main-col panel">
             <div className="main-inner">
+              <header className="report-header">
+                <h1>{r.title || 'Interview Report'}</h1>
+                {r.createdAt && <p className="report-meta">Generated on {new Date(r.createdAt).toLocaleString()}</p>}
+              </header>
               <div className="score">Match Score: <span className="score-value">{r.matchScore ?? '—'}</span></div>
               <div className="main-content">
                 {selectedQuestion ? (

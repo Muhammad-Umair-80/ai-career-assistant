@@ -6,7 +6,7 @@ import {
   generateResumePdf
 } from '../services/interview.api';
 import { InterviewContext } from '../interview.context';
-import {useParams} from 'react-router';
+import { useParams } from 'react-router-dom';
 
 export const useInterview = () => {
   const context = useContext(InterviewContext);

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../style/home.scss';
 import { useInterview } from '../interview.context';
+import { useAuth } from '../../auth/auth.context';
 
 const DocumentIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true" className="label-icon">
@@ -27,7 +28,8 @@ const SparkIcon = () => (
 import { submitInterview } from './services/interview.api';
 
 const Home = () => {
- const { reports } = useInterview();
+ const { reports, getAllReports } = useInterview();
+ const { user } = useAuth();
  const [jobDescription, setJobDescription] = useState('');
  const [selfDescription, setSelfDescription] = useState('');
  const [resumeFile, setResumeFile] = useState(null);
@@ -63,6 +65,20 @@ const Home = () => {
      setLoading(false);
    }
  }
+
+ // Load saved reports when the authenticated user is available
+ React.useEffect(() => {
+   let mounted = true;
+   if (!user) return;
+   (async () => {
+     try {
+       await getAllReports();
+     } catch (err) {
+       console.error('Failed to fetch reports:', err);
+     }
+   })();
+   return () => { mounted = false; };
+ }, [user]);
 
  function handleFileChange(e) {
    setError(null);
@@ -146,21 +162,33 @@ const Home = () => {
            </button>
 
             {/* recent report list*/}
-            {reports.length > 0 && (
-              <div className="recent-reports">
-                <h3>Recent Reports</h3>
-                <ul className='reportlist'>
-                  {reports.map((report) => (
-                    <li key={report._id} className='report-item' onClick={()=> navigate(`/interview/${report._id}`)}>
-                      <h3>{report.title}</h3>
-                      <p className='report-meta'> Generated on {new Date(report.CreatedAt).toLocaleDateString()} </p>
-                      <p className={`match-score ${report.matchScore > 70 ? 'high' : report.matchScore > 50 ? 'medium' : 'low'}`}>
-                        Match Score: {report.matchScore}%
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            {user ? (
+             reports.length > 0 ? (
+               <div className="recent-reports">
+                 <h3>Recent Reports</h3>
+                 <ul className='reportlist'>
+                   {reports.map((report) => (
+                     <li key={report._id} className='report-item' onClick={()=> navigate(`/interview/${report._id}`)}>
+                       <h3>{report.title || report.name || 'Untitled Report'}</h3>
+                       <p className='report-meta'> Generated on {new Date(report.createdAt || report.CreatedAt || Date.now()).toLocaleDateString()} </p>
+                       <p className={`match-score ${report.matchScore > 70 ? 'high' : report.matchScore > 50 ? 'medium' : 'low'}`}>
+                         Match Score: {report.matchScore}%
+                       </p>
+                     </li>
+                   ))}
+                 </ul>
+               </div>
+             ) : (
+               <div className="recent-reports">
+                 <h3>Recent Reports</h3>
+                 <p className="muted">No saved reports found for your account.</p>
+               </div>
+             )
+            ) : (
+             <div className="recent-reports">
+               <h3>Recent Reports</h3>
+               <p className="muted">Log in to view your saved interview reports.</p>
+             </div>
             )}
 
            {/* page footer */}
