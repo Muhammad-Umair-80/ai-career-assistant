@@ -63,7 +63,7 @@ async function generateInterviewReportController(req, res) {
 
 
 /**
- * 
+ * @description Get interview report by ID
  * @param {*} req 
  * @param {*} res 
  * @returns 
