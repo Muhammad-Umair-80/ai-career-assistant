@@ -1,11 +1,12 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import {
   generateInterviewReport,
   getInterviewReportById,
   getAllInterviewReports,
-  generateResumePdf,
+  generateResumePdf
 } from '../services/interview.api';
 import { InterviewContext } from '../interview.context';
+import {useParams} from 'react-router';
 
 export const useInterview = () => {
   const context = useContext(InterviewContext);
@@ -13,9 +14,9 @@ export const useInterview = () => {
   if (!context) {
     throw new Error('useInterview must be used within an InterviewProvider');
   }
+  const { interviewId } = useParams();
 
   const { loading, setLoading, report, setReport, reports, setReports } = context;
-
 
   const generateReport = async (jobDescription, resumeFile, selfDescription) => {
     setLoading(true);
@@ -60,29 +61,33 @@ export const useInterview = () => {
     }
   };
 
-  const getResumePdf = async (interviewId) => {
-    if (!interviewId) return null;
+  const getResumePdf = async (interviewReportId) => {
     setLoading(true);
+    let response = null
     try {
-      // generateResumePdf returns a Blob (see services/interview.api.js)
-      const blob = await generateResumePdf(interviewId);
-      const filename = `resume-${interviewId}.pdf`;
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      return true;
-    } catch (err) {
-      console.error('Error downloading resume pdf:', err);
-      return false;
-    } finally {
-      setLoading(false);
+        response = await generateResumePdf(interviewReportId);
+        const url = window.URL.createObjectURL(new Blob([response], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `resume_${interviewReportId}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
     }
-  };
+    catch (error) {
+        console.error('Error generating resume PDF:', error);
+    } finally {
+        setLoading(false);
+    }
+
+  }
+
+  useEffect(() => {
+    if (interviewId) {
+      getReportById(interviewId);
+    }else {
+      setReport(null);
+    }}, [interviewId]);
 
   return {
     loading,
@@ -91,6 +96,6 @@ export const useInterview = () => {
     generateReport,
     getReportById,
     getAllReports,
-    getResumePdf,
+    getResumePdf 
   };
 };
