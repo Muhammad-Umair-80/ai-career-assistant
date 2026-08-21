@@ -11,11 +11,18 @@ const Login = () => {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [error, setError] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await handleLogin(email, password);
-        navigate("/");
+        setError(null);
+        try {
+            await handleLogin(email, password);
+            navigate("/");
+        } catch (err) {
+            console.error('Login failed', err);
+            setError(err?.message || 'Login failed. Please check your credentials.');
+        }
     }
 
     if (loading) {
@@ -26,6 +33,8 @@ const Login = () => {
     <main className='form-container'>
         <div>
             <h1>Login</h1>
+
+            {error && <p className='error' style={{ color: 'var(--danger, #b00020)', marginTop: 8 }}>{error}</p>}
 
 
             <form action="" onSubmit={handleSubmit} className='form'>
